@@ -4,7 +4,7 @@ int main(void)
 {
 	/*---------------------------------------------------PARTE 2-------------------------------------------------------------*/
 
-	int conexion;
+	int conexion = -1; // inválido hasta conectar
 	char *ip;
 	char *puerto;
 	char *valor;
@@ -62,7 +62,7 @@ int main(void)
 
 	// Enviamos al servidor el valor de CLAVE como mensaje
 
-	enviar_mensaje(conexion, valor);
+	enviar_mensaje(valor, conexion);
 
 	// Armamos y enviamos el paquete
 	paquete(conexion);
@@ -123,7 +123,7 @@ void paquete(int conexion)
 	// Leemos y esta vez agregamos las lineas al paquete
 	paquete = crear_paquete();
 
-	if (p == NULL)
+	if (paquete == NULL)
 	{
 		// No se puede loggear acá sin logger, pero al menos avisamos
 		fprintf(stderr, "Error al crear el paquete\n");
@@ -133,7 +133,7 @@ void paquete(int conexion)
 	leido = readline("> ");
 	while (leido != NULL && strlen(leido) > 0)
 	{
-		agregar_linea_paquete(paquete, leido);
+		agregar_a_paquete(paquete, leido, strlen(leido) + 1);
 		free(leido);
 		leido = readline("> ");
 	}
@@ -143,10 +143,10 @@ void paquete(int conexion)
 		free(leido);
 
 	// Enviamos el paquete al servidor
-	enviar_paquete(conexion, paquete);
+	enviar_paquete(paquete, conexion);
 
 	// ¡No te olvides de liberar el paquete antes de regresar!
-	liberar_paquete(paquete);
+	eliminar_paquete(paquete);
 }
 
 void terminar_programa(int conexion, t_log *logger, t_config *config)
