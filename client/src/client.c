@@ -60,10 +60,14 @@ int main(void)
 
 t_log* iniciar_logger(void)
 {
-	t_log* nuevo_logger;
-
-	return nuevo_logger;
+    t_log* logger = log_create("tp0.log", "CLIENTE", true, LOG_LEVEL_INFO);
+    if (logger == NULL) {
+        printf("No se pudo crear el logger\n");
+        exit(1);
+    }
+    return logger;
 }
+
 
 t_config* iniciar_config(void)
 {
