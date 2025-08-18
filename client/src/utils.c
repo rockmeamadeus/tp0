@@ -18,25 +18,49 @@ void* serializar_paquete(t_paquete* paquete, int bytes)
 
 int crear_conexion(char *ip, char* puerto)
 {
-	struct addrinfo hints;
-	struct addrinfo *server_info;
+    struct addrinfo hints;
+    struct addrinfo *server_info, *p;
+    int socket_cliente = -1;
 
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    // Quitar AI_PASSIVE - eso es para servidores, no clientes
+    hints.ai_flags = 0;
 
-	getaddrinfo(ip, puerto, &hints, &server_info);
+    int rv = getaddrinfo(ip, puerto, &hints, &server_info);
+    if (rv != 0) {
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+        return -1;
+    }
 
-	// Ahora vamos a crear el socket.
-	int socket_cliente = 0;
+    // Intentar conectar con cada dirección obtenida
+    for (p = server_info; p != NULL; p = p->ai_next) {
+        // Crear el socket
+        socket_cliente = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+        if (socket_cliente == -1) {
+            continue;
+        }
 
-	// Ahora que tenemos el socket, vamos a conectarlo
+        // Intentar conectar
+        if (connect(socket_cliente, p->ai_addr, p->ai_addrlen) == -1) {
+            close(socket_cliente);
+            socket_cliente = -1;
+            continue;
+        }
 
+        // Si llegamos aquí, la conexión fue exitosa
+        break;
+    }
 
-	freeaddrinfo(server_info);
+    freeaddrinfo(server_info);
 
-	return socket_cliente;
+    if (socket_cliente == -1) {
+        fprintf(stderr, "No se pudo conectar a %s:%s\n", ip, puerto);
+        return -1;
+    }
+
+    return socket_cliente;
 }
 
 void enviar_mensaje(char* mensaje, int socket_cliente)

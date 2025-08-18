@@ -116,37 +116,45 @@ void leer_consola(t_log *logger)
 
 void paquete(int conexion)
 {
-	// Ahora toca lo divertido!
-	char *leido;
-	t_paquete *paquete;
+    char *leido;
+    t_paquete *paquete;
 
-	// Leemos y esta vez agregamos las lineas al paquete
-	paquete = crear_paquete();
+    printf("[INFO] Comenzando la creación del paquete...\n");
 
-	if (paquete == NULL)
-	{
-		// No se puede loggear acá sin logger, pero al menos avisamos
-		fprintf(stderr, "Error al crear el paquete\n");
-		return;
-	}
+    paquete = crear_paquete();
 
-	leido = readline("> ");
-	while (leido != NULL && strlen(leido) > 0)
-	{
-		agregar_a_paquete(paquete, leido, strlen(leido) + 1);
-		free(leido);
-		leido = readline("> ");
-	}
+    if (paquete == NULL)
+    {
+        printf("[ERROR] Error al crear el paquete\n");
+        return;
+    }
 
-	// Liberamos si no es NULL (puede serlo si fue Ctrl+D)
-	if (leido != NULL)
-		free(leido);
+    int cantidad = 0;
 
-	// Enviamos el paquete al servidor
-	enviar_paquete(paquete, conexion);
+    leido = readline("> ");
+    while (leido != NULL && strlen(leido) > 0)
+    {
+        printf("[INFO] Agregando al paquete: '%s'\n", leido);
+        agregar_a_paquete(paquete, leido, strlen(leido) + 1);
+        cantidad++;
+        free(leido);
+        leido = readline("> ");
+    }
 
-	// ¡No te olvides de liberar el paquete antes de regresar!
-	eliminar_paquete(paquete);
+    if (leido != NULL)
+        free(leido);
+
+    if (cantidad == 0)
+        printf("[WARNING] No se agregó ningún elemento al paquete\n");
+    else
+        printf("[INFO] Se agregaron %d elementos al paquete\n", cantidad);
+
+    printf("[INFO] Enviando el paquete al servidor...\n");
+    enviar_paquete(paquete, conexion);
+    printf("[INFO] Paquete enviado correctamente\n");
+
+    eliminar_paquete(paquete);
+    printf("[INFO] Paquete eliminado de memoria\n");
 }
 
 void terminar_programa(int conexion, t_log *logger, t_config *config)
