@@ -119,13 +119,9 @@ void paquete(int conexion)
     char *leido;
     t_paquete *paquete;
 
-    printf("[INFO] Comenzando la creación del paquete...\n");
-
     paquete = crear_paquete();
-
     if (paquete == NULL)
     {
-        printf("[ERROR] Error al crear el paquete\n");
         return;
     }
 
@@ -134,7 +130,6 @@ void paquete(int conexion)
     leido = readline("> ");
     while (leido != NULL && strlen(leido) > 0)
     {
-        printf("[INFO] Agregando al paquete: '%s'\n", leido);
         agregar_a_paquete(paquete, leido, strlen(leido) + 1);
         cantidad++;
         free(leido);
@@ -144,17 +139,8 @@ void paquete(int conexion)
     if (leido != NULL)
         free(leido);
 
-    if (cantidad == 0)
-        printf("[WARNING] No se agregó ningún elemento al paquete\n");
-    else
-        printf("[INFO] Se agregaron %d elementos al paquete\n", cantidad);
-
-    printf("[INFO] Enviando el paquete al servidor...\n");
     enviar_paquete(paquete, conexion);
-    printf("[INFO] Paquete enviado correctamente\n");
-
     eliminar_paquete(paquete);
-    printf("[INFO] Paquete eliminado de memoria\n");
 }
 
 void terminar_programa(int conexion, t_log *logger, t_config *config)
